@@ -1,6 +1,6 @@
 package be.vankerkom.sniffy.controllers;
 
-import be.vankerkom.sniffy.dto.DeviceDto;
+import be.vankerkom.sniffy.dto.Device;
 import be.vankerkom.sniffy.mappers.DeviceMapper;
 import be.vankerkom.sniffy.services.SnifferService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class DevicesController {
     private final DeviceMapper deviceMapper;
 
     @GetMapping
-    public List<DeviceDto> getAllNetworkDevices() {
+    public List<Device> getAllNetworkDevices() {
         return snifferService.getAllDevices()
                 .stream()
                 .map(deviceMapper::toDto)
