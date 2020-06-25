@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class SessionService {
@@ -14,7 +13,7 @@ public class SessionService {
         return Collections.emptyList();
     }
 
-    public void deleteSession(UUID sessionId) {
+    public void deleteSession(Long sessionId) {
 
     }
 }

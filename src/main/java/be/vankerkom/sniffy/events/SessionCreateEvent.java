@@ -2,10 +2,14 @@ package be.vankerkom.sniffy.events;
 
 import lombok.Value;
 
-import java.util.UUID;
-
 @Value
 public class SessionCreateEvent implements WebSocketEvent {
-    UUID id;
+
+    @Override
+    public EventId getEventId() {
+        return EventId.SESSION_CREATE;
+    }
+
+    long id;
     String name;
 }

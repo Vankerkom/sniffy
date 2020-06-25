@@ -1,11 +1,7 @@
 package be.vankerkom.sniffy.services;
 
-import be.vankerkom.sniffy.events.DataReceivedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.pcap4j.util.ByteArrays;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;

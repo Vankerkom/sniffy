@@ -2,13 +2,13 @@ package be.vankerkom.sniffy.services;
 
 import be.vankerkom.sniffy.dto.SnifferStartRequest;
 import be.vankerkom.sniffy.events.DataReceivedEvent;
+import be.vankerkom.sniffy.events.SnifferStateChanged;
 import be.vankerkom.sniffy.sniffer.SnifferThread;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.TransportPacket;
-import org.pcap4j.util.ByteArrays;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -57,6 +56,8 @@ public class SnifferService {
         // handle.setFilter(FILTER + PORT, BpfProgram.BpfCompileMode.OPTIMIZE);
 
         new SnifferThread(this, handle, PORT).start();
+
+        publisher.publishEvent(new SnifferStateChanged(true));
     }
 
     public void stop() {
@@ -84,6 +85,8 @@ public class SnifferService {
             // Ignore
         }
 
+        publisher.publishEvent(new SnifferStateChanged(false));
+
         handle.close();
         handle = null;
     }
@@ -99,6 +102,6 @@ public class SnifferService {
         log.info("{}: [inbound: {}]: {}", timestamp, inbound, packet);
 
         // TODO Analyse data based on protocol.
-        publisher.publishEvent(new DataReceivedEvent(UUID.randomUUID(), timestamp, packet.getPayload().getRawData()));
+        publisher.publishEvent(new DataReceivedEvent(0, timestamp, packet.getPayload().getRawData()));
     }
 }

@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/sessions")
@@ -21,7 +20,7 @@ public class SessionsController {
     }
 
     @DeleteMapping("{sessionId}")
-    public void deleteSession(@PathVariable UUID sessionId) {
+    public void deleteSession(@PathVariable Long sessionId) {
         sessionService.deleteSession(sessionId);
     }
 

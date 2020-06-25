@@ -9,7 +9,6 @@ import org.pcap4j.core.PcapDumper;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TransportPacket;
-import org.pcap4j.packet.UnknownPacket;
 
 import java.time.LocalDateTime;
 
