@@ -18,14 +18,13 @@ public class SnifferThread extends Thread {
 
     private final SnifferService snifferService;
     private final PcapHandle handle;
-    private final int port;
 
     @SneakyThrows
     @Override
     public void run() {
         final PcapDumper dumper = handle.dumpOpen("dumps/" + LocalDateTime.now().toString() + ".pcapFile");
 
-        while(handle.isOpen()) {
+        while (handle.isOpen()) {
             Packet packet = null;
 
             try {
@@ -40,15 +39,15 @@ public class SnifferThread extends Thread {
                 continue;
             }
 
+            final var transportPacket = packet.get(TransportPacket.class);
+
+            if (transportPacket == null || transportPacket.getPayload() == null) {
+                continue; // This might be a handshake?
+            }
+
             try {
-                final var transportPacket = packet.get(TransportPacket.class);
-
-                if (transportPacket == null) {
-                    continue;
-                }
-
-                snifferService.analyse(handle.getTimestamp(), transportPacket, port);
-            }catch (Exception e) {
+                snifferService.analyse(handle.getTimestamp(), transportPacket);
+            } catch (Exception e) {
                 log.error("Sniffing error", e);
             }
         }

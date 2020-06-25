@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class SnifferStartRequest {
 
-    private String name;
+    private String interfaceName;
+    private int protocolId;
 
 }

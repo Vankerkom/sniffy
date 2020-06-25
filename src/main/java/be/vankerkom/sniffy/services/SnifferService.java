@@ -1,8 +1,8 @@
 package be.vankerkom.sniffy.services;
 
-import be.vankerkom.sniffy.dto.SnifferStartRequest;
 import be.vankerkom.sniffy.events.DataReceivedEvent;
 import be.vankerkom.sniffy.events.SnifferStateChanged;
+import be.vankerkom.sniffy.model.Protocol;
 import be.vankerkom.sniffy.sniffer.SnifferThread;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -24,8 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SnifferService {
 
-    private static final int PORT = 19711;
-    private static final String FILTER = "udp port ";
+    // Sniffer configuration.
     private static final int SNAPSHOT_LENGTH = 65536;
     private static final int READ_TIMEOUT = 10;
 
@@ -37,27 +36,38 @@ public class SnifferService {
     @PostConstruct
     public void createDumpsDirectory() {
         final var dumpsDirectory = Path.of("dumps");
-        if (!Files.exists(dumpsDirectory)){
+        if (!Files.exists(dumpsDirectory)) {
             Files.createDirectory(dumpsDirectory);
         }
     }
 
-    public void start(SnifferStartRequest request) throws PcapNativeException, NotOpenException, InterruptedException {
+    public void start(String interfaceName, Protocol protocol) throws PcapNativeException, NotOpenException {
         if (handle != null && handle.isOpen()) {
             throw new IllegalStateException("Sniffer already active");
         }
 
-        final var networkInterface = getAllDevices().stream()
-                .filter(device -> device.getName().equalsIgnoreCase(request.getName()))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid network interface: " + request.getName()));
+        final var networkInterface = getNetworkInterfaceByName(interfaceName);
 
-        handle = networkInterface.openLive(SNAPSHOT_LENGTH, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-        // handle.setFilter(FILTER + PORT, BpfProgram.BpfCompileMode.OPTIMIZE);
+        setupInterface(protocol, networkInterface);
 
-        new SnifferThread(this, handle, PORT).start();
+        new SnifferThread(this, handle).start();
 
         publisher.publishEvent(new SnifferStateChanged(true));
+    }
+
+    private void setupInterface(Protocol protocol, PcapNetworkInterface networkInterface) throws PcapNativeException, NotOpenException {
+        handle = networkInterface.openLive(SNAPSHOT_LENGTH, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
+
+        if (!protocol.getFilter().isBlank()) {
+            handle.setFilter(protocol.getFilter(), BpfProgram.BpfCompileMode.OPTIMIZE);
+        }
+    }
+
+    private PcapNetworkInterface getNetworkInterfaceByName(String interfaceName) {
+        return getAllDevices().stream()
+                .filter(device -> device.getName().equalsIgnoreCase(interfaceName))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid network interface: " + interfaceName));
     }
 
     public void stop() {
@@ -91,15 +101,14 @@ public class SnifferService {
         handle = null;
     }
 
-    public void analyse(Timestamp timestamp, TransportPacket packet, int port) {
+    public void analyse(Timestamp timestamp, TransportPacket packet) {
         final var packetPayload = packet.getPayload();
 
         if (packetPayload == null) {
             return;
         }
 
-        final boolean inbound = packet.getHeader().getSrcPort().valueAsInt() == port;
-        log.info("{}: [inbound: {}]: {}", timestamp, inbound, packet);
+        log.info("{}: {}", timestamp, packet);
 
         // TODO Analyse data based on protocol.
         publisher.publishEvent(new DataReceivedEvent(0, timestamp, packet.getPayload().getRawData()));
