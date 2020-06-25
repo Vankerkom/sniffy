@@ -19,6 +19,8 @@ import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.List;
 
+import static java.util.Optional.ofNullable;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -113,4 +115,11 @@ public class SnifferService {
         // TODO Analyse data based on protocol.
         publisher.publishEvent(new DataReceivedEvent(0, timestamp, packet.getPayload().getRawData()));
     }
+
+    public boolean isActive() {
+        return ofNullable(handle)
+                .map(PcapHandle::isOpen)
+                .orElse(false);
+    }
+
 }

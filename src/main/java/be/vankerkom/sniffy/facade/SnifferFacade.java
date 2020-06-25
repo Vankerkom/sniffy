@@ -1,6 +1,7 @@
 package be.vankerkom.sniffy.facade;
 
 import be.vankerkom.sniffy.dto.DeviceDto;
+import be.vankerkom.sniffy.dto.SnifferDto;
 import be.vankerkom.sniffy.dto.SnifferStartRequest;
 import be.vankerkom.sniffy.mappers.DeviceMapper;
 import be.vankerkom.sniffy.services.ProtocolService;
@@ -39,6 +40,12 @@ public class SnifferFacade {
                 .stream()
                 .map(deviceMapper::toDto)
                 .collect(toList());
+    }
+
+    public SnifferDto getState() {
+        return SnifferDto.builder()
+                .active(snifferService.isActive())
+                .build();
     }
 
 }

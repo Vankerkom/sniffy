@@ -13,7 +13,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @RestController
-@RequestMapping("/v1/protocols")
+@RequestMapping("/api/v1/protocols")
 @RequiredArgsConstructor
 public class ProtocolsController {
 

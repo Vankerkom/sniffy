@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/devices")
+@RequestMapping("/api/v1/devices")
 @RequiredArgsConstructor
 public class DevicesController {
 
