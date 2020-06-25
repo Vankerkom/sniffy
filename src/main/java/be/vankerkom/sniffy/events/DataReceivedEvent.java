@@ -6,7 +6,7 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 @Value
-public class DataReceivedEvent {
+public class DataReceivedEvent implements WebSocketEvent {
     UUID sessionId;
     Timestamp timestamp;
     byte[] payload;

@@ -5,7 +5,7 @@ import lombok.Value;
 import java.util.UUID;
 
 @Value
-public class SessionCreateEvent {
+public class SessionCreateEvent implements WebSocketEvent {
     UUID id;
     String name;
 }
