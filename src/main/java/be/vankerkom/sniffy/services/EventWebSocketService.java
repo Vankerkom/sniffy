@@ -1,10 +1,15 @@
 package be.vankerkom.sniffy.services;
 
+import be.vankerkom.sniffy.events.DataReceivedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.pcap4j.util.ByteArrays;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
@@ -36,13 +41,7 @@ public class EventWebSocketService extends TextWebSocketHandler {
         log.info("Message received from {}: {}", session.getRemoteAddress(), message.getPayload());
     }
 
-    public void broadcast(String data) {
-        if (sessions.isEmpty()) {
-            return;
-        }
-
-        final var message = new TextMessage(data);
-
+    public void broadcast(WebSocketMessage<?> message) {
         for (WebSocketSession session : sessions) {
             try {
                 session.sendMessage(message);

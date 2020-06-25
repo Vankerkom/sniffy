@@ -1,6 +1,7 @@
 package be.vankerkom.sniffy.services;
 
 import be.vankerkom.sniffy.dto.SnifferStartRequest;
+import be.vankerkom.sniffy.events.DataReceivedEvent;
 import be.vankerkom.sniffy.sniffer.SnifferThread;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.pcap4j.core.*;
 import org.pcap4j.packet.TransportPacket;
 import org.pcap4j.util.ByteArrays;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -16,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -27,7 +30,7 @@ public class SnifferService {
     private static final int SNAPSHOT_LENGTH = 65536;
     private static final int READ_TIMEOUT = 10;
 
-    private final EventWebSocketService webSocketService;
+    private final ApplicationEventPublisher publisher;
 
     private PcapHandle handle;
 
@@ -96,8 +99,6 @@ public class SnifferService {
         log.info("{}: [inbound: {}]: {}", timestamp, inbound, packet);
 
         // TODO Analyse data based on protocol.
-
-        String message = ByteArrays.toHexString(packet.getPayload().getRawData(), " ");
-        webSocketService.broadcast(message);
+        publisher.publishEvent(new DataReceivedEvent(UUID.randomUUID(), timestamp, packet.getPayload().getRawData()));
     }
 }
