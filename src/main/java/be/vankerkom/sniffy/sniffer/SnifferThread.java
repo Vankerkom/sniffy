@@ -20,7 +20,6 @@ public class SnifferThread extends Thread {
     private final PcapHandle handle;
     private final int port;
 
-
     @SneakyThrows
     @Override
     public void run() {

@@ -1,8 +1,8 @@
 package be.vankerkom.sniffy.controllers;
 
-import be.vankerkom.sniffy.dto.DeviceDto;
-import be.vankerkom.sniffy.mappers.DeviceMapper;
-import be.vankerkom.sniffy.services.SnifferService;
+import be.vankerkom.sniffy.dto.ProtocolDto;
+import be.vankerkom.sniffy.mappers.ProtocolMapper;
+import be.vankerkom.sniffy.services.ProtocolService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,18 +13,18 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 
 @RestController
-@RequestMapping("/v1/devices")
+@RequestMapping("/v1/protocols")
 @RequiredArgsConstructor
-public class DevicesController {
+public class ProtocolsController {
 
-    private final SnifferService snifferService;
-    private final DeviceMapper deviceMapper;
+    private final ProtocolService protocolService;
+    private final ProtocolMapper protocolMapper;
 
     @GetMapping
-    public List<DeviceDto> getAllNetworkDevices() {
-        return snifferService.getAllDevices()
+    public List<ProtocolDto> getProtocols() {
+        return protocolService.getAll()
                 .stream()
-                .map(deviceMapper::toDto)
+                .map(protocolMapper::toDto)
                 .collect(toList());
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
 
 @Builder
 @Getter
-public class Device {
+public class DeviceDto {
 
     private final String name;
 

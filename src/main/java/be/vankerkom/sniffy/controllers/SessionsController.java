@@ -1,6 +1,6 @@
 package be.vankerkom.sniffy.controllers;
 
-import be.vankerkom.sniffy.dto.Session;
+import be.vankerkom.sniffy.dto.SessionDto;
 import be.vankerkom.sniffy.services.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -8,14 +8,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/sessions")
+@RequestMapping("/v1/sessions")
 @RequiredArgsConstructor
 public class SessionsController {
 
     private final SessionService sessionService;
 
     @GetMapping
-    public List<Session> getSessions() {
+    public List<SessionDto> getSessions() {
         return sessionService.getAllSessions();
     }
 

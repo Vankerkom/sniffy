@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class Session {
+public class SessionDto {
 
     private long id;
     private String name;
