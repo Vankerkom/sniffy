@@ -10,6 +10,6 @@ public class SessionCreateEvent implements WebSocketEvent {
         return EventId.SESSION_CREATE;
     }
 
-    long id;
+    int id;
     String name;
 }

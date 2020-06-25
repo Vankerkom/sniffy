@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 public class SessionDto {
 
-    private long id;
+    private int id;
     private String name;
     private String address;
     private int port;

@@ -19,8 +19,9 @@ public class SnifferController {
     }
 
     @PostMapping(value = "/start")
-    public void startSniffing(@RequestBody SnifferStartRequest request) {
+    public SnifferDto startSniffing(@RequestBody SnifferStartRequest request) {
         snifferFacade.startSniffing(request);
+        return snifferFacade.getState();
     }
 
     @PostMapping(value = "/stop")

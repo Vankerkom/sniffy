@@ -19,6 +19,11 @@ public class SessionsController {
         return sessionService.getAllSessions();
     }
 
+    @GetMapping("{sessionId}")
+    public SessionDto getSessions(@PathVariable int sessionId) {
+        return sessionService.getSessionById(sessionId);
+    }
+
     @DeleteMapping("{sessionId}")
     public void deleteSession(@PathVariable Long sessionId) {
         sessionService.deleteSession(sessionId);
