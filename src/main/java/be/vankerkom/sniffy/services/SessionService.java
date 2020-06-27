@@ -1,32 +1,32 @@
 package be.vankerkom.sniffy.services;
 
 import be.vankerkom.sniffy.dto.SessionDto;
+import be.vankerkom.sniffy.mappers.SessionMapper;
+import be.vankerkom.sniffy.model.Protocol;
+import be.vankerkom.sniffy.model.Session;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
+@RequiredArgsConstructor
 public class SessionService {
 
-    private final Map<Integer, SessionDto> sessions = new HashMap<>();
+    private final SessionMapper sessionMapper;
+    private final ApplicationEventPublisher publisher;
 
-    @PostConstruct
-    void seedSessions() {
-        addSession(SessionDto.builder().id(1).name("Test").build());
-        addSession(SessionDto.builder().id(2).name("Test 2").build());
-        addSession(SessionDto.builder().id(3).name("Test 3").build());
-    }
-
-    private void addSession(SessionDto test) {
-        sessions.put(test.getId(), test);
-    }
+    private final AtomicInteger newSessionId = new AtomicInteger();
+    private final Map<Integer, Session> sessions = new HashMap<>();
 
     public List<SessionDto> getAllSessions() {
-        return List.copyOf(sessions.values());
+        return sessionMapper.toDtos(sessions.values());
     }
 
     public void deleteSession(Long sessionId) {
@@ -34,6 +34,18 @@ public class SessionService {
     }
 
     public SessionDto getSessionById(int sessionId) {
-        return Optional.ofNullable(sessions.get(sessionId)).orElseThrow();
+        return Optional.ofNullable(sessions.get(sessionId))
+                .map(sessionMapper::toDto)
+                .orElseThrow();
+    }
+
+    public void createSession(Protocol protocol) {
+        final var sessionId = newSessionId.incrementAndGet();
+        final var timestamp = LocalDateTime.now();
+        final var session = new Session(sessionId, sessionId + " - " + protocol.getName(), protocol, timestamp);
+
+        sessions.put(sessionId, session);
+
+        publisher.publishEvent(sessionMapper.toCreateEvent(session));
     }
 }

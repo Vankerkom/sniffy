@@ -30,6 +30,7 @@ public class SnifferService {
     private static final int SNAPSHOT_LENGTH = 65536;
     private static final int READ_TIMEOUT = 10;
 
+    private final SessionService sessionService;
     private final ApplicationEventPublisher publisher;
 
     private PcapHandle handle;
@@ -51,6 +52,9 @@ public class SnifferService {
         final var networkInterface = getNetworkInterfaceByName(interfaceName);
 
         setupInterface(protocol, networkInterface);
+
+        // TODO Create multiple sessions.
+        sessionService.createSession(protocol);
 
         new SnifferThread(this, handle).start();
 
