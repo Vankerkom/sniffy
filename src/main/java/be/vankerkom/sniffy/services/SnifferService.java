@@ -3,6 +3,7 @@ package be.vankerkom.sniffy.services;
 import be.vankerkom.sniffy.events.DataReceivedEvent;
 import be.vankerkom.sniffy.events.SnifferStateChanged;
 import be.vankerkom.sniffy.model.Protocol;
+import be.vankerkom.sniffy.sniffer.Sniffer;
 import be.vankerkom.sniffy.sniffer.SnifferThread;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -26,14 +27,11 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 public class SnifferService {
 
-    // Sniffer configuration.
-    private static final int SNAPSHOT_LENGTH = 65536;
-    private static final int READ_TIMEOUT = 10;
 
     private final SessionService sessionService;
     private final ApplicationEventPublisher publisher;
 
-    private PcapHandle handle;
+    private Sniffer sniffer;
 
     @SneakyThrows
     @PostConstruct
@@ -45,43 +43,36 @@ public class SnifferService {
     }
 
     public void start(String interfaceName, Protocol protocol) throws PcapNativeException, NotOpenException {
-        if (handle != null && handle.isOpen()) {
+        if (sniffer != null) {
             throw new IllegalStateException("Sniffer already active");
         }
 
         final var networkInterface = getNetworkInterfaceByName(interfaceName);
 
-        setupInterface(protocol, networkInterface);
-
         // TODO Create multiple sessions.
         sessionService.createSession(protocol);
 
-        new SnifferThread(this, handle).start();
+        this.sniffer = new Sniffer(networkInterface, protocol);
+        this.sniffer.start();
 
         publisher.publishEvent(new SnifferStateChanged(true));
     }
 
-    private void setupInterface(Protocol protocol, PcapNetworkInterface networkInterface) throws PcapNativeException, NotOpenException {
-        handle = networkInterface.openLive(SNAPSHOT_LENGTH, PcapNetworkInterface.PromiscuousMode.PROMISCUOUS, READ_TIMEOUT);
-
-        if (!protocol.getFilter().isBlank()) {
-            handle.setFilter(protocol.getFilter(), BpfProgram.BpfCompileMode.OPTIMIZE);
-        }
-    }
-
-    private PcapNetworkInterface getNetworkInterfaceByName(String interfaceName) {
-        return getAllDevices().stream()
-                .filter(device -> device.getName().equalsIgnoreCase(interfaceName))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid network interface: " + interfaceName));
-    }
-
     public void stop() {
-        if (handle == null) {
+        if (sniffer == null) {
             throw new IllegalStateException("Sniffer not active");
         }
 
         shutdownSnifferGracefully();
+    }
+
+    private PcapNetworkInterface getNetworkInterfaceByName(String interfaceName) {
+        try {
+            return Pcaps.getDevByName(interfaceName);
+        } catch (PcapNativeException e) {
+            log.error("Cannot find network device: " + interfaceName, e);
+            throw new IllegalArgumentException("Invalid network interface: " + interfaceName, e);
+        }
     }
 
     @SneakyThrows
@@ -91,20 +82,13 @@ public class SnifferService {
 
     @PreDestroy
     public void shutdownSnifferGracefully() {
-        if (handle == null) {
+        if (sniffer == null) {
             return;
         }
 
-        try {
-            handle.breakLoop();
-        } catch (NotOpenException e) {
-            // Ignore
-        }
-
+        sniffer.shutdown();
+        sniffer = null;
         publisher.publishEvent(new SnifferStateChanged(false));
-
-        handle.close();
-        handle = null;
     }
 
     public void analyse(Timestamp timestamp, TransportPacket packet) {
@@ -121,8 +105,8 @@ public class SnifferService {
     }
 
     public boolean isActive() {
-        return ofNullable(handle)
-                .map(PcapHandle::isOpen)
+        return ofNullable(sniffer)
+                .map(Sniffer::isActive)
                 .orElse(false);
     }
 

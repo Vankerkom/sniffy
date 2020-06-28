@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapDumper;
 import org.pcap4j.core.PcapHandle;
+import org.pcap4j.packet.IpPacket;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TransportPacket;
 
@@ -35,7 +36,7 @@ public class SnifferThread extends Thread {
                 log.error("Error while sniffing", e);
             }
 
-            if (packet == null) {
+            if (packet == null || !packet.contains(IpPacket.class)) {
                 continue;
             }
 
@@ -45,8 +46,12 @@ public class SnifferThread extends Thread {
                 continue; // This might be a handshake?
             }
 
+            final var timestamp = handle.getTimestamp();
+
+            dumper.dump(packet, timestamp);
+
             try {
-                snifferService.analyse(handle.getTimestamp(), transportPacket);
+                snifferService.analyse(timestamp, transportPacket);
             } catch (Exception e) {
                 log.error("Sniffing error", e);
             }
