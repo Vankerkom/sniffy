@@ -1,17 +1,13 @@
 package be.vankerkom.sniffy.services;
 
-import be.vankerkom.sniffy.events.DataReceivedEvent;
 import be.vankerkom.sniffy.events.SnifferStateChanged;
 import be.vankerkom.sniffy.model.Protocol;
+import be.vankerkom.sniffy.sniffer.PacketProcessor;
 import be.vankerkom.sniffy.sniffer.Sniffer;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.pcap4j.core.NotOpenException;
-import org.pcap4j.core.PcapNativeException;
-import org.pcap4j.core.PcapNetworkInterface;
-import org.pcap4j.core.Pcaps;
-import org.pcap4j.packet.TransportPacket;
+import org.pcap4j.core.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +15,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Timestamp;
+import java.util.Optional;
 
+import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 
 @Service
@@ -28,8 +25,11 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 public class SnifferService {
 
-    private final SessionService sessionService;
+    private static final int SNAPSHOT_LENGTH = 65536;
+    private static final int READ_TIMEOUT = 10;
+
     private final ApplicationEventPublisher publisher;
+    private final PacketProcessor packetProcessor;
 
     private Sniffer sniffer;
 
@@ -42,20 +42,44 @@ public class SnifferService {
         }
     }
 
-    public void start(String interfaceName, Protocol protocol) throws PcapNativeException, NotOpenException {
+    public void start(String interfaceName, Protocol protocol) {
         if (sniffer != null) {
             throw new IllegalStateException("Sniffer already active");
         }
 
-        final var networkInterface = getNetworkInterfaceByName(interfaceName);
+        final var networkInterface = getNetworkInterfaceByName(interfaceName)
+                .orElseThrow();
 
-        // TODO Create multiple sessions.
-        sessionService.createSession(protocol);
+        final var handle = openLiveHandle(networkInterface, protocol)
+                .orElseThrow();
 
-        this.sniffer = new Sniffer(networkInterface, protocol);
+        this.sniffer = new Sniffer(handle, packetProcessor);
         this.sniffer.start();
 
         publisher.publishEvent(new SnifferStateChanged(true));
+    }
+
+    private Optional<PcapHandle> openLiveHandle(PcapNetworkInterface networkInterface, Protocol protocol) {
+
+        try {
+
+            final PcapHandle handle = networkInterface.openLive(
+                    SNAPSHOT_LENGTH,
+                    PcapNetworkInterface.PromiscuousMode.PROMISCUOUS,
+                    READ_TIMEOUT
+            );
+
+            final String filter = protocol.getFilter();
+
+            if (!filter.isBlank()) {
+                handle.setFilter(filter, BpfProgram.BpfCompileMode.OPTIMIZE);
+            }
+
+        } catch (PcapNativeException | NotOpenException e) {
+            log.error("Could not open sniffer handle", e);
+        }
+
+        return empty();
     }
 
     public void stop() {
@@ -66,9 +90,9 @@ public class SnifferService {
         shutdownSnifferGracefully();
     }
 
-    private PcapNetworkInterface getNetworkInterfaceByName(String interfaceName) {
+    private Optional<PcapNetworkInterface> getNetworkInterfaceByName(String interfaceName) {
         try {
-            return Pcaps.getDevByName(interfaceName);
+            return Optional.ofNullable(Pcaps.getDevByName(interfaceName));
         } catch (PcapNativeException e) {
             log.error("Cannot find network device: " + interfaceName, e);
             throw new IllegalArgumentException("Invalid network interface: " + interfaceName, e);
@@ -84,19 +108,6 @@ public class SnifferService {
         sniffer.shutdown();
         sniffer = null;
         publisher.publishEvent(new SnifferStateChanged(false));
-    }
-
-    public void analyse(Timestamp timestamp, TransportPacket packet) {
-        final var packetPayload = packet.getPayload();
-
-        if (packetPayload == null) {
-            return;
-        }
-
-        log.info("{}: {}", timestamp, packet);
-
-        // TODO Analyse data based on protocol.
-        publisher.publishEvent(new DataReceivedEvent(0, timestamp, packet.getPayload().getRawData()));
     }
 
     public boolean isActive() {

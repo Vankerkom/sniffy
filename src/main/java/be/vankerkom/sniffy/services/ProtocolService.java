@@ -1,6 +1,7 @@
 package be.vankerkom.sniffy.services;
 
 import be.vankerkom.sniffy.model.Protocol;
+import be.vankerkom.sniffy.model.ProtocolPort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -13,8 +14,8 @@ public class ProtocolService {
     private final Map<Integer, Protocol> protocols = new HashMap<>();
 
     public ProtocolService() {
-        addProtocol(new Protocol(0, "ALL", "No filter", ""));
-        addProtocol(new Protocol(1, "Giants", "Direct Play 8 - UDP Port 19711", "udp port 19711"));
+        addProtocol(new Protocol(0, "ALL", "No filter", Set.of()));
+        addProtocol(new Protocol(1, "Giants", "Direct Play 8", Set.of(ProtocolPort.udp(19711))));
     }
 
     private void addProtocol(Protocol protocol) {

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 
@@ -20,7 +19,6 @@ public class EventToWebSocketBroadcaster {
     private final EventWebSocketService eventWebSocketService;
     private final ObjectMapper objectMapper;
 
-    @Async
     @EventListener
     public void broadcastEvents(WebSocketEvent event) {
         eventToTextMessage(event)
