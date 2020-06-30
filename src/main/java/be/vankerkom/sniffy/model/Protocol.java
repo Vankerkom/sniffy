@@ -19,9 +19,11 @@ public class Protocol {
     Set<ProtocolPort> ports;
 
     public String getFilter() {
-        return ports.stream()
+        final var filter = ports.stream()
                 .map(ProtocolPort::toBpfFilter)
                 .collect(joining(" and "));
+
+        return filter.isBlank() ? "tcp and udp" : filter;
     }
 
     public boolean isInbound(final Port srcPort) {

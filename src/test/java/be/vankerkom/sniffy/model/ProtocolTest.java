@@ -9,10 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ProtocolTest {
 
     @Test
-    void getFilterWithNoPortsReturnsEmptyString() {
+    void getFilterWithNoPortsReturnsTcpAndUdpString() {
         final var protocol = new Protocol(0, "", "", Set.of());
 
-        assertEquals("", protocol.getFilter());
+        assertEquals("tcp and udp", protocol.getFilter());
     }
 
     @Test
