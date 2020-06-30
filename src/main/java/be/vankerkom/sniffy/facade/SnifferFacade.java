@@ -4,6 +4,7 @@ import be.vankerkom.sniffy.dto.DeviceDto;
 import be.vankerkom.sniffy.dto.SnifferDto;
 import be.vankerkom.sniffy.dto.SnifferStartRequest;
 import be.vankerkom.sniffy.mappers.DeviceMapper;
+import be.vankerkom.sniffy.services.DeviceService;
 import be.vankerkom.sniffy.services.ProtocolService;
 import be.vankerkom.sniffy.services.SnifferService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class SnifferFacade {
 
     private final ProtocolService protocolService;
     private final SnifferService snifferService;
+    private final DeviceService deviceService;
 
     private final DeviceMapper deviceMapper;
 
@@ -36,7 +38,7 @@ public class SnifferFacade {
     }
 
     public List<DeviceDto> getSniffingDevices() {
-        return snifferService.getAllDevices()
+        return deviceService.getAllDevices()
                 .stream()
                 .map(deviceMapper::toDto)
                 .collect(toList());

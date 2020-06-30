@@ -4,11 +4,13 @@ import be.vankerkom.sniffy.events.DataReceivedEvent;
 import be.vankerkom.sniffy.events.SnifferStateChanged;
 import be.vankerkom.sniffy.model.Protocol;
 import be.vankerkom.sniffy.sniffer.Sniffer;
-import be.vankerkom.sniffy.sniffer.SnifferThread;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.pcap4j.core.*;
+import org.pcap4j.core.NotOpenException;
+import org.pcap4j.core.PcapNativeException;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.TransportPacket;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -18,7 +20,6 @@ import javax.annotation.PreDestroy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
-import java.util.List;
 
 import static java.util.Optional.ofNullable;
 
@@ -26,7 +27,6 @@ import static java.util.Optional.ofNullable;
 @Slf4j
 @RequiredArgsConstructor
 public class SnifferService {
-
 
     private final SessionService sessionService;
     private final ApplicationEventPublisher publisher;
@@ -73,11 +73,6 @@ public class SnifferService {
             log.error("Cannot find network device: " + interfaceName, e);
             throw new IllegalArgumentException("Invalid network interface: " + interfaceName, e);
         }
-    }
-
-    @SneakyThrows
-    public List<PcapNetworkInterface> getAllDevices() {
-        return Pcaps.findAllDevs();
     }
 
     @PreDestroy
