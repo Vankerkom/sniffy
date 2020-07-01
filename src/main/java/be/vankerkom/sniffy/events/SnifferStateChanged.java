@@ -1,5 +1,7 @@
 package be.vankerkom.sniffy.events;
 
+import be.vankerkom.sniffy.model.Protocol;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Value;
 
 @Value
@@ -11,4 +13,8 @@ public class SnifferStateChanged implements WebSocketEvent {
     }
 
     boolean active;
+
+    @JsonIgnore
+    Protocol protocol;
+
 }

@@ -4,6 +4,7 @@ import be.vankerkom.sniffy.dto.DeviceDto;
 import be.vankerkom.sniffy.dto.SnifferDto;
 import be.vankerkom.sniffy.dto.SnifferStartRequest;
 import be.vankerkom.sniffy.mappers.DeviceMapper;
+import be.vankerkom.sniffy.model.Protocol;
 import be.vankerkom.sniffy.services.DeviceService;
 import be.vankerkom.sniffy.services.ProtocolService;
 import be.vankerkom.sniffy.services.SnifferService;
@@ -12,6 +13,7 @@ import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 

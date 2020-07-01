@@ -30,4 +30,7 @@ public class ProtocolService {
         return ofNullable(protocols.get(protocolId));
     }
 
+    public Protocol getDefaultProtocol() {
+        return protocols.get(0);
+    }
 }

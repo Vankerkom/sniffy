@@ -3,9 +3,10 @@ package be.vankerkom.sniffy.events;
 import lombok.Value;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
-@Value
-public class DataReceivedEvent implements WebSocketEvent {
+@Value(staticConstructor = "of")
+public class MessagePacketReceivedEvent implements WebSocketEvent {
 
     @Override
     public EventId getEventId() {
@@ -13,6 +14,8 @@ public class DataReceivedEvent implements WebSocketEvent {
     }
 
     long sessionId;
-    Timestamp timestamp;
+    LocalDateTime timestamp;
+    boolean inbound;
     byte[] payload;
+
 }

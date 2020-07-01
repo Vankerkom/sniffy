@@ -17,22 +17,11 @@ public class Session {
     private final Protocol protocol;
     private final LocalDateTime startedAt;
 
-    @Builder.Default
-    private final List<TransportMessage> transportMessages = new ArrayList<>();
-
     public Session(int id, String name, Protocol protocol, LocalDateTime startedAt) {
         this.id = id;
         this.name = name;
         this.protocol = protocol;
         this.startedAt = startedAt;
-    }
-
-    public void addTransportMessage(TransportMessage packet) {
-        this.transportMessages.add(packet);
-    }
-
-    public List<TransportMessage> getTransportMessages() {
-        return unmodifiableList(transportMessages);
     }
 
 }

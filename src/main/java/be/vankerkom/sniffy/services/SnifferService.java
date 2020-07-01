@@ -2,7 +2,6 @@ package be.vankerkom.sniffy.services;
 
 import be.vankerkom.sniffy.events.SnifferStateChanged;
 import be.vankerkom.sniffy.model.Protocol;
-import be.vankerkom.sniffy.sniffer.PacketProcessor;
 import be.vankerkom.sniffy.sniffer.Sniffer;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -17,8 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
+import static java.util.Optional.*;
 
 @Service
 @Slf4j
@@ -29,7 +27,7 @@ public class SnifferService {
     private static final int READ_TIMEOUT = 10;
 
     private final ApplicationEventPublisher publisher;
-    private final PacketProcessor packetProcessor;
+    private final PacketProcessingService packetProcessingService;
 
     private Sniffer sniffer;
 
@@ -53,16 +51,14 @@ public class SnifferService {
         final var handle = openLiveHandle(networkInterface, protocol)
                 .orElseThrow();
 
-        this.sniffer = new Sniffer(handle, packetProcessor);
-        this.sniffer.start();
+        publisher.publishEvent(new SnifferStateChanged(true, protocol));
 
-        publisher.publishEvent(new SnifferStateChanged(true));
+        this.sniffer = new Sniffer(handle, packetProcessingService);
+        this.sniffer.start();
     }
 
     private Optional<PcapHandle> openLiveHandle(PcapNetworkInterface networkInterface, Protocol protocol) {
-
         try {
-
             final PcapHandle handle = networkInterface.openLive(
                     SNAPSHOT_LENGTH,
                     PcapNetworkInterface.PromiscuousMode.PROMISCUOUS,
@@ -75,6 +71,7 @@ public class SnifferService {
                 handle.setFilter(filter, BpfProgram.BpfCompileMode.OPTIMIZE);
             }
 
+            return of(handle);
         } catch (PcapNativeException | NotOpenException e) {
             log.error("Could not open sniffer handle", e);
         }
@@ -92,7 +89,7 @@ public class SnifferService {
 
     private Optional<PcapNetworkInterface> getNetworkInterfaceByName(String interfaceName) {
         try {
-            return Optional.ofNullable(Pcaps.getDevByName(interfaceName));
+            return ofNullable(Pcaps.getDevByName(interfaceName));
         } catch (PcapNativeException e) {
             log.error("Cannot find network device: " + interfaceName, e);
             throw new IllegalArgumentException("Invalid network interface: " + interfaceName, e);
@@ -107,7 +104,7 @@ public class SnifferService {
 
         sniffer.shutdown();
         sniffer = null;
-        publisher.publishEvent(new SnifferStateChanged(false));
+        publisher.publishEvent(new SnifferStateChanged(false, null));
     }
 
     public boolean isActive() {

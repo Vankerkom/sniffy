@@ -2,12 +2,12 @@ package be.vankerkom.sniffy.model;
 
 import lombok.Value;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Value
-public class TransportMessage {
+public class MessagePacket {
 
-    Timestamp timestamp;
+    LocalDateTime timestamp;
     boolean inbound;
     byte[] payload;
 
