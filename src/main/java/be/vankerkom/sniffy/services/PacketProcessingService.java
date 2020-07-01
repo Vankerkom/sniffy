@@ -16,6 +16,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -45,15 +46,13 @@ public class PacketProcessingService implements PacketListener {
         final var transportPacket = packet.get(TransportPacket.class);
         final var inbound = protocol.isInbound(transportPacket.getHeader().getSrcPort());
 
-        final var sessionIdentifier = getSessionIdentifier(inbound, ipPacket.getHeader(), transportPacket.getHeader());
+        final Session session = getSessionByPacketHeaders(ipPacket, transportPacket, inbound);
 
         final var payload = transportPacket.getRawData();
         final var timestamp = LocalDateTime.now();
 
         // Pipeline
         // Start a new session for the ip, port and protocol.
-
-        final var session = getOrCreateSession(sessionIdentifier);
 
         log.debug("ipPacket: {}", ipPacket);
         log.debug("Protocol: {}", this.protocol);
@@ -63,7 +62,12 @@ public class PacketProcessingService implements PacketListener {
         // Check for application data/protocol decoders.
         // If no decoders present, log raw payload of the transport packet. //  and start a session for a port.
 
-        publisher.publishEvent(MessagePacketReceivedEvent.of(session.getId(), timestamp, inbound, payload));
+        publisher.publishEvent(MessagePacketReceivedEvent.of(UUID.randomUUID(), session.getId(), timestamp, inbound, payload));
+    }
+
+    private Session getSessionByPacketHeaders(IpPacket ipPacket, TransportPacket transportPacket, boolean inbound) {
+        final var sessionIdentifier = getSessionIdentifier(inbound, ipPacket.getHeader(), transportPacket.getHeader());
+        return getOrCreateSession(sessionIdentifier);
     }
 
     private SessionIdentifier getSessionIdentifier(boolean inbound, IpPacket.IpHeader ipHeader, TransportPacket.TransportHeader transportHeader) {
