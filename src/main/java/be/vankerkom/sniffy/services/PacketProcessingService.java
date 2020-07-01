@@ -3,6 +3,8 @@ package be.vankerkom.sniffy.services;
 import be.vankerkom.sniffy.events.MessagePacketReceivedEvent;
 import be.vankerkom.sniffy.events.SnifferStateChanged;
 import be.vankerkom.sniffy.model.Protocol;
+import be.vankerkom.sniffy.model.Session;
+import be.vankerkom.sniffy.model.SessionIdentifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.pcap4j.core.PacketListener;
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class PacketProcessingService implements PacketListener {
 
+    private final SessionService sessionService;
     private final ApplicationEventPublisher publisher;
 
     private Protocol protocol;
@@ -41,15 +44,34 @@ public class PacketProcessingService implements PacketListener {
         final var ipPacket = packet.get(IpPacket.class);
         final var transportPacket = packet.get(TransportPacket.class);
         final var inbound = protocol.isInbound(transportPacket.getHeader().getSrcPort());
+
+        final var sessionIdentifier = getSessionIdentifier(inbound, ipPacket.getHeader(), transportPacket.getHeader());
+
         final var payload = transportPacket.getRawData();
         final var timestamp = LocalDateTime.now();
 
-        log.info("ipPacket: {}", ipPacket);
-        log.info("Protocol: {}", this.protocol);
-        log.info("Inbound: {}", inbound);
+        // Pipeline
+        // Start a new session for the ip, port and protocol.
 
+        final var session = getOrCreateSession(sessionIdentifier);
 
-        publisher.publishEvent(MessagePacketReceivedEvent.of(0L, timestamp, inbound, payload));
+        log.debug("ipPacket: {}", ipPacket);
+        log.debug("Protocol: {}", this.protocol);
+        log.debug("Inbound: {}", inbound);
+        log.debug("Session Id: {}", session.getId());
+
+        // Check for application data/protocol decoders.
+        // If no decoders present, log raw payload of the transport packet. //  and start a session for a port.
+
+        publisher.publishEvent(MessagePacketReceivedEvent.of(session.getId(), timestamp, inbound, payload));
+    }
+
+    private SessionIdentifier getSessionIdentifier(boolean inbound, IpPacket.IpHeader ipHeader, TransportPacket.TransportHeader transportHeader) {
+        return SessionIdentifier.of(inbound, ipHeader, transportHeader);
+    }
+
+    private Session getOrCreateSession(SessionIdentifier sessionIdentifier) {
+        return sessionService.getOrCreateSession(sessionIdentifier, protocol);
     }
 
 }
