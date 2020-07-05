@@ -48,7 +48,7 @@ public class PacketProcessingService implements PacketListener {
 
         final Session session = getSessionByPacketHeaders(ipPacket, transportPacket, inbound);
 
-        final var payload = transportPacket.getRawData();
+        final var payload = transportPacket.getPayload().getRawData();
         final var timestamp = LocalDateTime.now();
 
         // Pipeline
