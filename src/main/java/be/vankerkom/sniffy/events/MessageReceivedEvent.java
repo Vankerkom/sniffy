@@ -17,7 +17,6 @@ public class MessageReceivedEvent implements WebSocketEvent {
     long sessionId;
     LocalDateTime timestamp;
     boolean inbound;
-    long length;
     byte[] payload;
     String protocol;
     int opcode;

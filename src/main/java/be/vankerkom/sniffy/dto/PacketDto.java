@@ -1,14 +1,17 @@
-package be.vankerkom.sniffy.model;
+package be.vankerkom.sniffy.dto;
 
-import lombok.Value;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Value
-public class MessagePacket {
+@Getter
+@Builder
+public class PacketDto {
 
     UUID id;
+    long sessionId;
     LocalDateTime timestamp;
     boolean inbound;
     byte[] payload;

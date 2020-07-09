@@ -8,12 +8,14 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class MessagePacketDto {
+public class MessageDto {
 
     UUID id;
-    int sessionId;
+    long sessionId;
     LocalDateTime timestamp;
     boolean inbound;
     byte[] payload;
+    String protocol;
+    int opcode;
 
 }
