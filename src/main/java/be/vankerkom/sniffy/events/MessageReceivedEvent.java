@@ -6,17 +6,20 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Value(staticConstructor = "of")
-public class MessagePacketReceivedEvent implements WebSocketEvent {
+public class MessageReceivedEvent implements WebSocketEvent {
 
     @Override
     public EventId getEventId() {
-        return EventId.MESSAGE_PACKET_RECEIVED;
+        return EventId.MESSAGE_RECEIVED;
     }
 
     UUID id;
     long sessionId;
     LocalDateTime timestamp;
     boolean inbound;
+    long length;
     byte[] payload;
+    String protocol;
+    int opcode;
 
 }

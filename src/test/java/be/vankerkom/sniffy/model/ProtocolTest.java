@@ -10,28 +10,28 @@ class ProtocolTest {
 
     @Test
     void getFilterWithNoPortsReturnsTcpAndUdpString() {
-        final var protocol = new Protocol(0, "", "", Set.of());
+        final var protocol = new Protocol(0, "", "", Set.of(), false, false);
 
         assertEquals("tcp and udp", protocol.getFilter());
     }
 
     @Test
     void getFilterWithUdpPortReturnsUdpFilter() {
-        final var protocol = new Protocol(0, "", "", Set.of(ProtocolPort.udp(1337)));
+        final var protocol = new Protocol(0, "", "", Set.of(ProtocolPort.udp(1337)), false, false);
 
         assertEquals("udp port 1337", protocol.getFilter());
     }
 
     @Test
     void getFilterWithUdpPortReturnsTcpFilter() {
-        final var protocol = new Protocol(0, "", "", Set.of(ProtocolPort.tcp(9901)));
+        final var protocol = new Protocol(0, "", "", Set.of(ProtocolPort.tcp(9901)), false, false);
 
         assertEquals("tcp port 9901", protocol.getFilter());
     }
 
     @Test
     void getFilterMultiplePortsReturnsCombinedFilter() {
-        final var protocol = new Protocol(0, "", "", Set.of(ProtocolPort.tcp(9901)));
+        final var protocol = new Protocol(0, "", "", Set.of(ProtocolPort.tcp(9901)), false, false);
 
         assertEquals("tcp port 9901", protocol.getFilter());
     }

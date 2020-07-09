@@ -14,10 +14,10 @@ public class ProtocolService {
     private final Map<Integer, Protocol> protocols = new HashMap<>();
 
     public ProtocolService() {
-        addProtocol(new Protocol(0, "ALL", "No filter", Set.of()));
-        addProtocol(new Protocol(1, "Giants", "Direct Play 8", Set.of(ProtocolPort.udp(19711))));
-        addProtocol(new Protocol(2, "DNS", "Raw DNS Queries", Set.of(ProtocolPort.udp(53))));
-        addProtocol(new Protocol(3, "Minecraft", "Minecraft", Set.of(ProtocolPort.tcp(25565))));
+        addProtocol(new Protocol(0, "ALL", "No filter", Set.of(), true, false));
+        addProtocol(new Protocol(1, "Giants", "Direct Play 8", Set.of(ProtocolPort.udp(19711)), true, false));
+        addProtocol(new Protocol(2, "DNS", "Raw DNS Queries", Set.of(ProtocolPort.udp(53)), true, false));
+        addProtocol(new Protocol(3, "Minecraft", "Minecraft", Set.of(ProtocolPort.tcp(25565)), true, true));
     }
 
     private void addProtocol(Protocol protocol) {

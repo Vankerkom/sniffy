@@ -1,6 +1,6 @@
 package be.vankerkom.sniffy.services;
 
-import be.vankerkom.sniffy.events.MessagePacketReceivedEvent;
+import be.vankerkom.sniffy.events.PacketReceivedEvent;
 import be.vankerkom.sniffy.events.SnifferStateChanged;
 import be.vankerkom.sniffy.model.Protocol;
 import be.vankerkom.sniffy.model.Session;
@@ -62,7 +62,7 @@ public class PacketProcessingService implements PacketListener {
         // Check for application data/protocol decoders.
         // If no decoders present, log raw payload of the transport packet. //  and start a session for a port.
 
-        publisher.publishEvent(MessagePacketReceivedEvent.of(UUID.randomUUID(), session.getId(), timestamp, inbound, payload));
+        publisher.publishEvent(PacketReceivedEvent.of(UUID.randomUUID(), session.getId(), timestamp, inbound, payload.length, payload));
     }
 
     private Session getSessionByPacketHeaders(IpPacket ipPacket, TransportPacket transportPacket, boolean inbound) {

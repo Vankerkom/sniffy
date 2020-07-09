@@ -4,7 +4,6 @@ import lombok.Value;
 import org.pcap4j.packet.namednumber.Port;
 
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static java.util.function.Predicate.isEqual;
 import static java.util.stream.Collectors.joining;
@@ -15,8 +14,9 @@ public class Protocol {
     int id;
     String name;
     String description;
-
     Set<ProtocolPort> ports;
+    boolean packetViewEnabled;
+    boolean messageViewEnabled;
 
     public String getFilter() {
         final var filter = ports.stream()

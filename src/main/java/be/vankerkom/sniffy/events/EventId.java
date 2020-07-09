@@ -11,7 +11,8 @@ public enum EventId {
     SESSION_CREATE(2),
     SESSION_UPDATE(3),
     SESSION_DELETE(4),
-    MESSAGE_PACKET_RECEIVED(5),
+    PACKET_RECEIVED(5),
+    MESSAGE_RECEIVED(6),
     ;
 
     @Getter
