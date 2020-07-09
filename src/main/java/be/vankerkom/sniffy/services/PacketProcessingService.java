@@ -62,7 +62,9 @@ public class PacketProcessingService implements PacketListener {
         // Check for application data/protocol decoders.
         // If no decoders present, log raw payload of the transport packet. //  and start a session for a port.
 
-        publisher.publishEvent(PacketReceivedEvent.of(UUID.randomUUID(), session.getId(), timestamp, inbound, payload.length, payload));
+        if (protocol.isPacketViewEnabled()) {
+            publisher.publishEvent(PacketReceivedEvent.of(UUID.randomUUID(), session.getId(), timestamp, inbound, payload));
+        }
     }
 
     private Session getSessionByPacketHeaders(IpPacket ipPacket, TransportPacket transportPacket, boolean inbound) {
